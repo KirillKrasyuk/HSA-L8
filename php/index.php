@@ -97,12 +97,28 @@ class Server {
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    private function createRecords(string $table = 'users')
+    public function insertOneRecord(): void
+    {
+        try {
+            $sql = sprintf(
+                "INSERT INTO users (birthday) VALUES ('%s');",
+                date('Y-m-d', $this->getTimestamp()),
+            );
+
+            $query = $this->connection->prepare($sql);
+
+            $query->execute();
+        } catch (\Exception $exception) {
+            echo "SQL error: " . $exception->getMessage() . PHP_EOL;
+        }
+    }
+
+    public function createRecords(string $table = 'users')
     {
         for ($i = 1; $i <= 40000000; $i++) {
             $this->dates[] = date('Y-m-d', $this->getTimestamp());
 
-            if ($i % 10000 === 0) {
+            if ($i % 10 === 0) {
                 $this->insertRecords($table);
 
                 $this->dates = [];
@@ -122,6 +138,8 @@ class Server {
             $query = $this->connection->prepare($sql);
 
             $query->execute();
+
+            echo 'Saved...' . PHP_EOL;
         } catch (\Exception $exception) {
             echo "SQL error: " . $exception->getMessage() . PHP_EOL;
         }
@@ -215,14 +233,18 @@ $server = new Server(
 //$server->initData();
 //$server->initMemoryData();
 
+//$server->createRecords();
+//echo 'Creating records...' . PHP_EOL;
+
 $startTime = microtime(true);
 
-$result = [];
-//$result = $server->getDataWithoutIndex();
-//$result = $server->getDataWithBtreeIndex();
-$result = $server->getDataWithHashIndex();
+$records = 100;
+
+for ($i = 0; $i < $records; $i++) {
+    $server->insertOneRecord();
+}
 
 $endTime = microtime(true);
 $duration = $endTime - $startTime;
 
-echo sprintf('Results count %s. Duration %s sec', \count($result), $duration) . PHP_EOL;
+echo sprintf('Results count %s. Duration %s sec', $records, $duration) . PHP_EOL;
