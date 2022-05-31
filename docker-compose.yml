@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    env_file: configuration.env
+    volumes:
+      - ./mysql/db.cnf:/etc/mysql/conf.d/db.cnf
+      - db:/var/lib/mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    env_file: configuration.env
+    working_dir: /var/www
+    volumes:
+      - ./php:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+volumes:
+  db:
+    driver: local
